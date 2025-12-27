@@ -3,7 +3,7 @@ import styles from "@/app/Home.module.css";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { fetchNotes, fetchNoteById } from "@/lib/api";
 import getQueryClient from "@/lib/getQueryClient";
-import NotesClient from "@/app/notes/filter/[...slug]/Notes.client";
+import NotesClient from "@/app/(private routes)/notes/filter/[...slug]/Notes.client";
 
 type MetadataProps = {
   params: {
