@@ -1,4 +1,4 @@
-import css from "@/app/notes/filter/LayoutNotes.module.css";
+import css from "@/app/(private routes)/notes/filter/LayoutNotes.module.css";
 
 export default function FilterLayout({
   children,

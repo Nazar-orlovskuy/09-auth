@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/app/notes/page.module.css";
+import styles from "@/app/(private routes)/notes/page.module.css";
 import { useState, useCallback } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
