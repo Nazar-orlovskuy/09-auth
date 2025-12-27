@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import styles from "@/app/Home.module.css";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { fetchNotes, fetchNoteById } from "@/lib/api";
+import { fetchNotes, fetchNoteById } from "@/lib/api/clientApi";
 import getQueryClient from "@/lib/getQueryClient";
 import NotesClient from "@/app/(private routes)/notes/filter/[...slug]/Notes.client";
 

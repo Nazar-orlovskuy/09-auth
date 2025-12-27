@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api";
+import { fetchNoteById } from "@/lib/api/clientApi";
 import { useRouter } from "next/navigation";
 import css from "@/components/NotePreview/NotePreview.module.css";
 import Modal from "@/components/Modal/Modal";
@@ -10,8 +10,11 @@ type Props = {
   noteId: string;
 };
 
-function NotePreviewContent({ noteId, onClose }:Props&{onClose:()=>void}) {
-const { data, isLoading, isError } = useQuery({
+function NotePreviewContent({
+  noteId,
+  onClose,
+}: Props & { onClose: () => void }) {
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["note", noteId],
     queryFn: () => fetchNoteById(noteId),
   });
@@ -27,10 +30,7 @@ const { data, isLoading, isError } = useQuery({
   return (
     <div className={css.container}>
       <div className={css.item}>
-        <button
-          className={css.backBtn}
-          onClick={() => onClose()}
-        >
+        <button className={css.backBtn} onClick={() => onClose()}>
           ← Back
         </button>
 
@@ -47,14 +47,17 @@ const { data, isLoading, isError } = useQuery({
       </div>
     </div>
   );
-} 
+}
 
 export default function NotePreview({ noteId }: Props) {
   const router = useRouter();
- 
-  const handleClose = () =>{router.back()}
-    return <Modal onClose={handleClose}>
-      <NotePreviewContent noteId={noteId} onClose={handleClose}/>
-        </Modal>
- 
+
+  const handleClose = () => {
+    router.back();
+  };
+  return (
+    <Modal onClose={handleClose}>
+      <NotePreviewContent noteId={noteId} onClose={handleClose} />
+    </Modal>
+  );
 }
