@@ -12,6 +12,7 @@
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-query-devtools": "^5.91.1",
     "axios": "^1.13.2",
+    "cookie": "^1.1.1",
     "formik": "^2.4.9",
     "next": "^16.0.8",
     "normalize.css": "^8.0.1",
