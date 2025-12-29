@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import styles from "@/app/Home.module.css";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { fetchNotes, fetchNoteById } from "@/lib/api/clientApi";
+import { fetchNoteById } from "@/lib/api/serverApi";
 import getQueryClient from "@/lib/getQueryClient";
-import NotesClient from "@/app/(private routes)/notes/filter/[...slug]/Notes.client";
+import NoteDetailsClient from "./NoteDetails.client";
+import { cookies } from "next/headers";
 
 type MetadataProps = {
   params: {
@@ -17,7 +18,13 @@ export async function generateMetadata({
   const { id } = params;
 
   try {
-    const note = await fetchNoteById(id);
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
+      .join("; ");
+
+    const note = await fetchNoteById(cookieHeader, id);
     const title = `${note.title} — NoteHub`;
     const description = note.content
       ? note.content.slice(0, 160)
@@ -47,18 +54,30 @@ export async function generateMetadata({
   }
 }
 
-export default async function NotesPage() {
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function NotePage({ params }: Props) {
+  const { id } = await params;
+
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
+    .join("; ");
+
   const queryClient = getQueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: ["notes", 1, ""],
-    queryFn: () => fetchNotes({ page: 1, perPage: 12, search: "", tag: "" }),
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(cookieHeader, id),
   });
 
   return (
     <main className={styles.main}>
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <NotesClient />
+        <NoteDetailsClient key={id} />
       </HydrationBoundary>
     </main>
   );

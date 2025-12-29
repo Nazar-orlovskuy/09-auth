@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import styles from "./ProfilePage.module.css";
 import Image from "next/image";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { getMe as serverGetMe } from "../../../lib/api/serverApi";
 
@@ -25,9 +26,9 @@ export default async function ProfilePage() {
       <div className={styles.profileCard}>
         <div className={styles.header}>
           <h1 className={styles.formTitle}>Profile Page</h1>
-          <a href="/profile/edit" className={styles.editProfileButton}>
+          <Link href="/profile/edit" className={styles.editProfileButton}>
             Edit Profile
-          </a>
+          </Link>
         </div>
 
         <div className={styles.avatarWrapper}>
