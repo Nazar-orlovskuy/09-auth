@@ -22,19 +22,30 @@ function toNote(sn: ServerNote): Note {
   };
 }
 
-export async function fetchNotes(params?: { search?: string; page?: number; tag?: string; perPage?: number }) {
+function buildConfig(cookies?: string, params?: Record<string, unknown>) {
+  return {
+    params,
+    headers: cookies ? { Cookie: cookies } : undefined,
+  };
+}
+
+export async function fetchNotes(
+  params?: { search?: string; page?: number; tag?: string; perPage?: number },
+  cookies?: string
+) {
   const filteredParams: Record<string, unknown> = {};
   if (params?.page) filteredParams.page = params.page;
   if (params?.perPage) filteredParams.limit = params.perPage;
   if (params?.search) filteredParams.search = params.search;
   if (params?.tag && params.tag !== 'all') filteredParams.tag = params.tag;
 
-  const res = await api.get<ServerNote[]>('/notes', { params: filteredParams });
+  const res = await api.get<ServerNote[]>('/notes', buildConfig(cookies, filteredParams));
   return res.data.map(toNote);
 }
 
-export async function fetchNoteById(id: string) {
-  const res = await api.get<ServerNote>(`/notes/${id}`);
+
+export async function fetchNoteById(id: string, cookies?: string) {
+  const res = await api.get<ServerNote>(`/notes/${id}`, buildConfig(cookies));
   return toNote(res.data);
 }
 
@@ -63,13 +74,13 @@ export async function logout() {
   return res.data;
 }
 
-export async function checkSession() {
-  const res = await api.get<User | null>('/auth/session');
+export async function checkSession(cookies?: string) {
+  const res = await api.get<User | null>('/auth/session', buildConfig(cookies));
   return res.data;
 }
 
-export async function getMe() {
-  const res = await api.get<User>('/users/me');
+export async function getMe(cookies?: string) {
+  const res = await api.get<User>('/users/me', buildConfig(cookies));
   return res.data;
 }
 
