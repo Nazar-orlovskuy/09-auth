@@ -23,7 +23,13 @@ function toNote(sn: ServerNote): Note {
 }
 
 export async function fetchNotes(params?: { search?: string; page?: number; tag?: string; perPage?: number }) {
-  const res = await api.get<ServerNote[]>('/notes', { params });
+  const filteredParams: Record<string, unknown> = {};
+  if (params?.page) filteredParams.page = params.page;
+  if (params?.perPage) filteredParams.limit = params.perPage;
+  if (params?.search) filteredParams.search = params.search;
+  if (params?.tag && params.tag !== 'all') filteredParams.tag = params.tag;
+
+  const res = await api.get<ServerNote[]>('/notes', { params: filteredParams });
   return res.data.map(toNote);
 }
 
