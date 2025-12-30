@@ -1,7 +1,7 @@
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { api } from './api';
-import axios, { AxiosResponse } from 'axios';
-import type { User } from '../../types/user';
-import type { Note, NoteTag } from '../../types/note';
+import { User } from '../../types/user';
+import { Note, NoteTag } from '../../types/note';
 
 type ServerNote = {
   _id: string;
@@ -23,62 +23,39 @@ function toNote(sn: ServerNote): Note {
   };
 }
 
-function createServerInstance(cookies?: string) {
-  const instance = axios.create({ baseURL: (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api', withCredentials: true });
-  if (cookies) {
-    const defaults = instance.defaults;
-    (defaults.headers as unknown as Record<string, unknown>)['Cookie'] = cookies;
-  }
-  return instance;
+function buildConfig(
+  cookies?: string,
+  params?: Record<string, unknown>
+): AxiosRequestConfig {
+  return {
+    params,
+    headers: cookies ? { Cookie: cookies } : undefined,
+  };
 }
 
-export async function fetchNotes(params?: { search?: string; page?: number; tag?: string; perPage?: number }) {
-  const res = await api.get<ServerNote[]>('/notes', { params });
+export async function fetchNotes(
+  cookies?: string,
+  params?: { search?: string; page?: number; tag?: string }
+): Promise<Note[]> {
+  const res = await api.get<ServerNote[]>('/notes', buildConfig(cookies, params));
   return res.data.map(toNote);
 }
 
-export async function fetchNoteById(id: string) {
-  const res = await api.get<ServerNote>(`/notes/${id}`);
+export async function fetchNoteById(
+  cookies: string | undefined,
+  id: string
+): Promise<Note> {
+  const res = await api.get<ServerNote>(`/notes/${id}`, buildConfig(cookies));
   return toNote(res.data);
 }
 
-export async function createNote(payload: { title: string; content: string; tag: string }) {
-  const res = await api.post<ServerNote>('/notes', payload);
-  return toNote(res.data);
-}
-
-export async function deleteNote(id: string) {
-  const res = await api.delete<ServerNote>(`/notes/${id}`);
-  return toNote(res.data);
-}
-
-export async function register(payload: { email: string; password: string }) {
-  const res = await api.post<User>('/auth/register', payload);
+export async function getMe(cookies?: string): Promise<User> {
+  const res = await api.get<User>('/users/me', buildConfig(cookies));
   return res.data;
 }
 
-export async function login(payload: { email: string; password: string }) {
-  const res = await api.post<User>('/auth/login', payload);
-  return res.data;
-}
-
-export async function logout() {
-  const res = await api.post('/auth/logout');
-  return res.data;
-}
-
-export async function checkSession(cookies?: string): Promise<AxiosResponse<User | null>> {
-  const api = createServerInstance(cookies);
-  const res = await api.get<User | null>('/auth/session');
-  return res;
-}
-
-export async function getMe() {
-  const res = await api.get<User>('/users/me');
-  return res.data;
-}
-
-export async function updateMe(payload: Partial<User>) {
-  const res = await api.patch<User>('/users/me', payload);
-  return res.data;
+export async function checkSession(
+  cookies?: string
+): Promise<AxiosResponse<User | null>> {
+  return api.get<User | null>('/auth/session', buildConfig(cookies));
 }
