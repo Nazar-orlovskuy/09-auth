@@ -4,7 +4,6 @@ import type { AxiosResponse } from "axios";
 import { checkSession } from "./lib/api/serverApi";
 import type { User } from "./types/user";
 
-
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -17,7 +16,6 @@ export async function proxy(req: NextRequest) {
   const isPublicAuthRoute =
     pathname === "/sign-in" || pathname === "/sign-up";
 
-
   if (isPrivateRoute && !accessToken) {
     if (refreshToken) {
       try {
@@ -29,8 +27,16 @@ export async function proxy(req: NextRequest) {
           await checkSession(cookieHeader);
 
         if (res.data) {
+          const response = NextResponse.next();
 
-          return NextResponse.next();
+          const setCookie = res.headers["set-cookie"];
+          if (setCookie) {
+            setCookie.forEach((cookie) => {
+              response.headers.append("set-cookie", cookie);
+            });
+          }
+
+          return response;
         }
       } catch (error) {
         console.error("Proxy session check failed:", error);
@@ -50,7 +56,6 @@ export async function proxy(req: NextRequest) {
 
   return NextResponse.next();
 }
-
 
 export const config = {
   matcher: [
