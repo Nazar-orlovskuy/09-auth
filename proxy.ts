@@ -21,40 +21,51 @@ export async function proxy(req: NextRequest) {
     pathname === "/sign-in" || pathname === "/sign-up";
 
   if (isPrivateRoute && !accessToken) {
-    if (refreshToken) {
-      try {
-        const cookieHeader = `refreshToken=${refreshToken}`;
-
-        const res: AxiosResponse<User | null> =
-          await checkSession(cookieHeader);
-
-        if (res.data) {
-          const response = NextResponse.next();
-
-          const setCookie = res.headers["set-cookie"];
-          if (setCookie) {
-            setCookie.forEach((cookie) => {
-              response.headers.append("set-cookie", cookie);
-            });
-          }
-
-          return response;
-        }
-      } catch (error) {
-        console.error("Proxy session check failed:", error);
-      }
+    if (!refreshToken) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/sign-in";
+      return NextResponse.redirect(url);
     }
 
-    const url = req.nextUrl.clone();
-    url.pathname = "/sign-in";
-    return NextResponse.redirect(url);
+    try {
+      const cookieHeader = `refreshToken=${refreshToken}`;
+
+      const res: AxiosResponse<User | null> =
+        await checkSession(cookieHeader);
+
+      if (!res.data) {
+        const url = req.nextUrl.clone();
+        url.pathname = "/sign-in";
+        return NextResponse.redirect(url);
+      }
+
+      const response = NextResponse.next();
+
+      const setCookie = res.headers["set-cookie"];
+      if (setCookie) {
+        setCookie.forEach((cookie) => {
+          response.headers.append("set-cookie", cookie);
+        });
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Proxy session check failed:", error);
+
+      const url = req.nextUrl.clone();
+      url.pathname = "/sign-in";
+      return NextResponse.redirect(url);
+    }
   }
 
+  if (isPublicAuthRoute) {
+    if (accessToken) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
 
-  if (isPublicAuthRoute && accessToken) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+    return NextResponse.next();
   }
 
   return NextResponse.next();
