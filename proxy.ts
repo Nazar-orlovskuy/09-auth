@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import type { AxiosResponse } from "axios";
+
 import { checkSession } from "./lib/api/serverApi";
 import type { User } from "./types/user";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const accessToken = req.cookies.get("accessToken")?.value;
-  const refreshToken = req.cookies.get("refreshToken")?.value;
+  const cookieStore = await cookies();
+
+  const accessToken = cookieStore.get("accessToken")?.value;
+  const refreshToken = cookieStore.get("refreshToken")?.value;
 
   const isPrivateRoute =
     pathname.startsWith("/profile") || pathname.startsWith("/notes");
@@ -19,9 +23,7 @@ export async function proxy(req: NextRequest) {
   if (isPrivateRoute && !accessToken) {
     if (refreshToken) {
       try {
-        const cookieHeader =
-          req.headers.get("cookie") ??
-          `refreshToken=${refreshToken}`;
+        const cookieHeader = `refreshToken=${refreshToken}`;
 
         const res: AxiosResponse<User | null> =
           await checkSession(cookieHeader);
@@ -48,9 +50,10 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+
   if (isPublicAuthRoute && accessToken) {
     const url = req.nextUrl.clone();
-    url.pathname = "/profile";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
