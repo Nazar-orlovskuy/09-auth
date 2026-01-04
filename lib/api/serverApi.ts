@@ -1,7 +1,9 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { api } from './api';
-import { User } from '../../types/user';
-import { Note, NoteTag } from '../../types/note';
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { api } from "./api";
+import type { User } from "../../types/user";
+import type { Note, NoteTag } from "../../types/note";
+
+/* Types */
 
 type ServerNote = {
   _id: string;
@@ -11,6 +13,8 @@ type ServerNote = {
   createdAt: string;
   updatedAt?: string;
 };
+
+/* Mappers */
 
 function toNote(sn: ServerNote): Note {
   return {
@@ -23,6 +27,8 @@ function toNote(sn: ServerNote): Note {
   };
 }
 
+/* Helpers */
+
 function buildConfig(
   cookies?: string,
   params?: Record<string, unknown>
@@ -33,11 +39,22 @@ function buildConfig(
   };
 }
 
+/* Notes API (SERVER) */
+
 export async function fetchNotes(
-  cookies?: string,
-  params?: { search?: string; page?: number; tag?: string }
+  cookies: string | undefined,
+  params?: {
+    search?: string;
+    page?: number;
+    tag?: string;
+    limit?: number;
+  }
 ): Promise<Note[]> {
-  const res = await api.get<ServerNote[]>('/notes', buildConfig(cookies, params));
+  const res = await api.get<ServerNote[]>(
+    "/notes",
+    buildConfig(cookies, params)
+  );
+
   return res.data.map(toNote);
 }
 
@@ -45,17 +62,30 @@ export async function fetchNoteById(
   cookies: string | undefined,
   id: string
 ): Promise<Note> {
-  const res = await api.get<ServerNote>(`/notes/${id}`, buildConfig(cookies));
+  const res = await api.get<ServerNote>(
+    `/notes/${id}`,
+    buildConfig(cookies)
+  );
+
   return toNote(res.data);
 }
 
-export async function getMe(cookies?: string): Promise<User> {
-  const res = await api.get<User>('/users/me', buildConfig(cookies));
-  return res.data;
-}
+/* Auth API */
 
 export async function checkSession(
   cookies?: string
 ): Promise<AxiosResponse<User | null>> {
-  return api.get<User | null>('/auth/session', buildConfig(cookies));
+  return api.get<User | null>(
+    "/auth/session",
+    buildConfig(cookies)
+  );
+}
+
+export async function getMe(cookies?: string): Promise<User> {
+  const res = await api.get<User>(
+    "/users/me",
+    buildConfig(cookies)
+  );
+
+  return res.data;
 }
