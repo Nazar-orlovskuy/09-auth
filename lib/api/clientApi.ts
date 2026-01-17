@@ -2,10 +2,10 @@ import { api } from "./api";
 import type { User } from "../../types/user";
 import type { Note, NoteTag } from "../../types/note";
 
-/* ===== Notes mapping ===== */
+/* Notes mapping */
 
 type ServerNote = {
-  _id: string;
+  id: string;
   title: string;
   content: string;
   tag: string;
@@ -15,7 +15,7 @@ type ServerNote = {
 
 function toNote(sn: ServerNote): Note {
   return {
-    id: sn._id,
+    id: sn.id,
     title: sn.title,
     content: sn.content,
     tag: sn.tag as NoteTag,
@@ -24,7 +24,7 @@ function toNote(sn: ServerNote): Note {
   };
 }
 
-/* ===== Notes API ===== */
+/* Notes API */
 
 export async function fetchNotes(params?: {
   search?: string;
@@ -41,11 +41,17 @@ export async function fetchNotes(params?: {
     filteredParams.tag = params.tag;
   }
 
-  const res = await api.get<ServerNote[]>("/notes", {
+  const res = await api.get<
+    {
+  totalPages: number;
+  notes: ServerNote[];
+}
+>("/notes", {
     params: filteredParams,
   });
-
-  return res.data.map(toNote);
+  return {
+    notes: res.data.notes.map(toNote)
+  , totalPages: res.data.totalPages };
 }
 
 export async function fetchNoteById(id: string) {
@@ -67,7 +73,7 @@ export async function deleteNote(id: string) {
   return toNote(res.data);
 }
 
-/* ===== Auth API ===== */
+/* Auth API */
 
 export async function register(payload: {
   email: string;
@@ -91,11 +97,12 @@ export async function logout() {
 }
 
 export async function checkSession() {
-  const res = await api.get<User | null>("/auth/session");
-  return res.data;
+  const res = await api.get<{success:boolean} | null>("/auth/session");
+  console.log(res);
+  return res.data?.success;
 }
 
-/* ===== User API ===== */
+/* User API */
 
 export async function getMe() {
   const res = await api.get<User>("/users/me");

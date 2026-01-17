@@ -29,6 +29,9 @@ export default function EditProfilePage() {
           const me = await apiGetMe();
           if (!mounted) return;
           setUser(me as User);
+
+          console.log(2);
+
           setUsername(me.username);
           setEmail(me.email);
           setAvatar(me.avatar || null);

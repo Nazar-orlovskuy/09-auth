@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { checkSession as apiCheckSession } from "../../lib/api/clientApi";
 import { useAuthStore } from "../../lib/store/authStore";
+import { getMe } from "@/lib/api/serverApi";
 
 export default function AuthProvider({
   children,
@@ -27,9 +28,11 @@ export default function AuthProvider({
     async function verify() {
       setChecking(true);
       try {
-        const user = await apiCheckSession();
-        if (user) {
+        const isAuthenticated = await apiCheckSession();
+        if (isAuthenticated) {
+          const user = await getMe();
           setUser(user);
+          console.log(1);
         } else {
           clearIsAuthenticated();
           if (isPrivate) {
